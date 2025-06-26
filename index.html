@@ -258,57 +258,40 @@
         }
         
         /* Glitch effect */
-        .glitch {
-            position: relative;
-            display: inline-block;
+        .glitching {
+            animation: glitch-shake 0.7s linear;
+            filter: contrast(2) brightness(1.2) saturate(1.5) drop-shadow(2px 0 0 #00ff88) drop-shadow(-2px 0 0 #ff00cc);
         }
         
-        .glitch::before,
-        .glitch::after {
-            content: attr(data-text);
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        @keyframes glitch-shake {
+            0% { transform: none; }
+            10% { transform: translate(-2px, 1px) skewX(2deg); }
+            20% { transform: translate(2px, -1px) skewY(-2deg); }
+            30% { transform: translate(-1px, 2px) skewX(-1deg); }
+            40% { transform: translate(1px, -2px) skewY(1deg); }
+            50% { transform: translate(-2px, 1px) skewX(2deg); }
+            60% { transform: translate(2px, -1px) skewY(-2deg); }
+            70% { transform: translate(-1px, 2px) skewX(-1deg); }
+            80% { transform: translate(1px, -2px) skewY(1deg); }
+            90% { transform: translate(-2px, 1px) skewX(2deg); }
+            100% { transform: none; }
         }
         
-        .glitch::before {
-            animation: glitch-1 0.5s infinite;
-            color: #ff0040;
-            z-index: -1;
+        .glitch-static {
+            pointer-events: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 9999;
+            background: repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 2px), repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 2px);
+            opacity: 0.7;
+            display: none;
+            animation: static-flicker 0.7s linear;
         }
         
-        .glitch::after {
-            animation: glitch-2 0.5s infinite;
-            color: #00ffff;
-            z-index: -2;
-        }
-        
-        @keyframes glitch-1 {
-            0%, 100% { transform: translate(0); }
-            10% { transform: translate(-2px, -2px); }
-            20% { transform: translate(2px, 2px); }
-            30% { transform: translate(-2px, 2px); }
-            40% { transform: translate(2px, -2px); }
-            50% { transform: translate(-2px, -2px); }
-            60% { transform: translate(2px, 2px); }
-            70% { transform: translate(-2px, 2px); }
-            80% { transform: translate(2px, -2px); }
-            90% { transform: translate(-2px, -2px); }
-        }
-        
-        @keyframes glitch-2 {
-            0%, 100% { transform: translate(0); }
-            10% { transform: translate(2px, 2px); }
-            20% { transform: translate(-2px, -2px); }
-            30% { transform: translate(2px, -2px); }
-            40% { transform: translate(-2px, 2px); }
-            50% { transform: translate(2px, 2px); }
-            60% { transform: translate(-2px, -2px); }
-            70% { transform: translate(2px, -2px); }
-            80% { transform: translate(-2px, 2px); }
-            90% { transform: translate(2px, 2px); }
+        @keyframes static-flicker {
+            0%, 100% { opacity: 0.7; }
+            10%, 30%, 50%, 70%, 90% { opacity: 0.3; }
+            20%, 40%, 60%, 80% { opacity: 0.9; }
         }
         
         /* Modal for video playback */
@@ -448,6 +431,36 @@
                 top: 100%;
             }
         }
+        
+        /* Theme preview mini-matrix */
+        .theme-preview-matrix {
+            background: #0a0a0a;
+            position: relative;
+        }
+        .theme-preview-matrix .mini-matrix-char {
+            position: absolute;
+            font-size: 13px;
+            color: #00ff88;
+            opacity: 0.7;
+            font-family: 'JetBrains Mono', monospace;
+            pointer-events: none;
+        }
+        .theme-preview-starfield {
+            background: #000;
+            position: relative;
+        }
+        .theme-preview-starfield .mini-star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+        .theme-option:hover {
+            background: #222;
+        }
     </style>
 </head>
 <body>
@@ -475,7 +488,10 @@
     <!-- Main Content -->
     <div class="container">
         <section id="home">
-            <h1 class="section-title" style="color: #00ff88; -webkit-text-fill-color: initial; background: none; text-shadow: 0 2px 16px #00ff88, 0 0 2px #000;"><span id="typingTitle"></span></h1>
+            <h1 class="section-title" id="glitchTrigger" style="color: #00ff88; -webkit-text-fill-color: initial; background: none; text-shadow: 0 2px 16px #00ff88, 0 0 2px #000; position:relative; cursor:pointer;">
+                <span id="typingTitle"></span>
+                <span id="glitchTooltip" style="display:none;position:absolute;left:50%;top:110%;transform:translateX(-50%);background:#181818;color:#00ff88;padding:7px 18px;border-radius:6px;font-size:1rem;box-shadow:0 2px 12px #00ff8822;white-space:nowrap;z-index:10;pointer-events:none;opacity:0;transition:opacity 0.2s;">Curious? Click me…</span>
+            </h1>
             <p style="text-align: center; font-size: 1.1rem; color: #888; margin-bottom: 40px;">
                 > AUTOMATIONS | BOTS | DASHBOARDS | SCRAPERS | EXTENSIONS | DATA TOOLS — Built with code-level precision
             </p>
@@ -756,6 +772,21 @@
         </div>
     </div>
 
+    <!-- Theme Switcher Button and Dropdown -->
+    <div id="themeSwitcher" style="position:fixed;bottom:30px;right:30px;z-index:2000;">
+        <button id="themeBtn" style="background:#1a1a1a;color:#00ff88;border:2px solid #00ff88;padding:14px 22px;font-size:1.1rem;border-radius:8px;box-shadow:0 0 16px #00ff88;cursor:pointer;outline:none;">Theme ▾</button>
+        <div id="themeDropdown" style="display:none;position:absolute;bottom:60px;right:0;background:#181818;border:1px solid #00ff88;border-radius:8px;box-shadow:0 4px 24px #00ff8822;min-width:220px;overflow:hidden;">
+            <div class="theme-option" data-theme="matrix" style="display:flex;align-items:center;gap:12px;padding:12px 18px;cursor:pointer;transition:background 0.2s;">
+                <div class="theme-preview-matrix" style="width:48px;height:32px;border-radius:4px;overflow:hidden;position:relative;background:#0a0a0a;"></div>
+                <span style="color:#00ff88;font-family:'JetBrains Mono',monospace;">Matrix Rain</span>
+            </div>
+            <div class="theme-option" data-theme="starfield" style="display:flex;align-items:center;gap:12px;padding:12px 18px;cursor:pointer;transition:background 0.2s;">
+                <div class="theme-preview-starfield" style="width:48px;height:32px;border-radius:4px;overflow:hidden;position:relative;background:#000;"></div>
+                <span style="color:#fff;font-family:'JetBrains Mono',monospace;">Starfield</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
@@ -950,6 +981,182 @@
 
         // Start the typing animation
         doTypingStep();
+
+        // === GLITCH REVEAL ON HEADING CLICK ===
+        // Add static overlay div if not present
+        if (!document.getElementById('glitchStatic')) {
+            const staticDiv = document.createElement('div');
+            staticDiv.id = 'glitchStatic';
+            staticDiv.className = 'glitch-static';
+            document.body.appendChild(staticDiv);
+        }
+        document.getElementById('glitchTrigger').addEventListener('click', function() {
+            document.body.classList.add('glitching');
+            const staticDiv = document.getElementById('glitchStatic');
+            staticDiv.style.display = 'block';
+            setTimeout(() => {
+                document.body.classList.remove('glitching');
+                staticDiv.style.display = 'none';
+            }, 700);
+        });
+
+        // === THEME SWITCHER ===
+        const themeBtn = document.getElementById('themeBtn');
+        const themeDropdown = document.getElementById('themeDropdown');
+        let currentTheme = 'matrix';
+        // Show/hide dropdown
+        themeBtn.onclick = function() {
+            themeDropdown.style.display = themeDropdown.style.display === 'block' ? 'none' : 'block';
+        };
+        // Hide dropdown on click outside
+        document.addEventListener('click', function(e) {
+            if (!themeBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+                themeDropdown.style.display = 'none';
+            }
+        });
+        // Theme switching logic
+        document.querySelectorAll('.theme-option').forEach(opt => {
+            opt.onclick = function() {
+                const theme = this.getAttribute('data-theme');
+                setTheme(theme);
+                themeDropdown.style.display = 'none';
+            };
+        });
+        function setTheme(theme) {
+            if (theme === currentTheme) return;
+            // Remove all theme backgrounds
+            document.getElementById('matrixRain').style.display = (theme === 'matrix') ? 'block' : 'none';
+            if (theme === 'starfield') {
+                if (!document.getElementById('starfieldBg')) {
+                    createStarfield();
+                }
+                document.getElementById('starfieldBg').style.display = 'block';
+            } else {
+                const sf = document.getElementById('starfieldBg');
+                if (sf) sf.style.display = 'none';
+            }
+            currentTheme = theme;
+        }
+        // --- Starfield background ---
+        function createStarfield() {
+            const starfield = document.createElement('canvas');
+            starfield.id = 'starfieldBg';
+            starfield.style.position = 'fixed';
+            starfield.style.top = '0';
+            starfield.style.left = '0';
+            starfield.style.width = '100vw';
+            starfield.style.height = '100vh';
+            starfield.style.zIndex = '-1';
+            starfield.style.pointerEvents = 'none';
+            document.body.appendChild(starfield);
+            let ctx = starfield.getContext('2d');
+            let w, h, stars = [];
+            function resize() {
+                w = window.innerWidth;
+                h = window.innerHeight;
+                starfield.width = w;
+                starfield.height = h;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+            for (let i = 0; i < 120; i++) {
+                stars.push({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    r: Math.random() * 1.5 + 0.5,
+                    s: Math.random() * 0.7 + 0.2
+                });
+            }
+            function animate() {
+                ctx.clearRect(0, 0, w, h);
+                for (let star of stars) {
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.r, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#fff';
+                    ctx.globalAlpha = 0.7 + 0.3 * Math.sin(Date.now() / 400 + star.x);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    star.x += star.s;
+                    if (star.x > w) star.x = 0;
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+        // --- Mini previews for dropdown ---
+        function miniMatrixPreview() {
+            const preview = document.querySelector('.theme-preview-matrix');
+            for (let i = 0; i < 18; i++) {
+                const char = document.createElement('span');
+                char.className = 'mini-matrix-char';
+                char.style.left = (i % 6) * 8 + 4 + 'px';
+                char.style.top = Math.floor(i / 6) * 12 + 4 + 'px';
+                char.textContent = Math.random() > 0.5 ? '0' : '1';
+                preview.appendChild(char);
+            }
+        }
+        function miniStarfieldPreview() {
+            const preview = document.querySelector('.theme-preview-starfield');
+            for (let i = 0; i < 18; i++) {
+                const star = document.createElement('div');
+                star.className = 'mini-star';
+                star.style.left = (i % 6) * 7 + 6 + 'px';
+                star.style.top = Math.floor(i / 6) * 10 + 6 + 'px';
+                star.style.opacity = (0.5 + Math.random() * 0.5).toFixed(2);
+                preview.appendChild(star);
+            }
+        }
+        miniMatrixPreview();
+        miniStarfieldPreview();
+
+        // Animate mini Matrix Rain preview
+        (function animateMiniMatrix() {
+            const chars = document.querySelectorAll('.theme-preview-matrix .mini-matrix-char');
+            let t = 0;
+            setInterval(() => {
+                t++;
+                chars.forEach((char, i) => {
+                    // Flicker
+                    if (Math.random() > 0.7) char.textContent = Math.random() > 0.5 ? '0' : '1';
+                    // Fall
+                    let y = parseInt(char.style.top);
+                    y += 4;
+                    if (y > 28) y = 4;
+                    char.style.top = y + 'px';
+                    // Fade
+                    char.style.opacity = 0.5 + 0.5 * Math.sin((t + i * 2) / 8);
+                });
+            }, 120);
+        })();
+
+        // Animate mini Starfield preview
+        (function animateMiniStarfield() {
+            const stars = document.querySelectorAll('.theme-preview-starfield .mini-star');
+            setInterval(() => {
+                stars.forEach((star, i) => {
+                    let x = parseInt(star.style.left);
+                    x += 1 + (i % 3);
+                    if (x > 48) x = 6;
+                    star.style.left = x + 'px';
+                });
+            }, 80);
+        })();
+
+        // === TOOLTIP ON HOVER ===
+        const glitchTrigger = document.getElementById('glitchTrigger');
+        const glitchTooltip = document.getElementById('glitchTooltip');
+        let tooltipTimeout;
+        glitchTrigger.addEventListener('mouseenter', () => {
+            tooltipTimeout = setTimeout(() => {
+                glitchTooltip.style.display = 'block';
+                setTimeout(() => { glitchTooltip.style.opacity = 1; }, 10);
+            }, 600);
+        });
+        glitchTrigger.addEventListener('mouseleave', () => {
+            clearTimeout(tooltipTimeout);
+            glitchTooltip.style.opacity = 0;
+            setTimeout(() => { glitchTooltip.style.display = 'none'; }, 200);
+        });
     </script>
 </body>
 </html>
